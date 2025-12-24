@@ -1,3 +1,5 @@
+![Backed](/Images/Desktop.jpeg)
+
 # Backed
 Backed is a macOS application that allows you to use video files as live desktop wallpapers. 
 It provides a clean SwiftUI-based interface for managing a personal wallpaper library and runs a performant, hardware-accelerated video wallpaper behind your desktop icons.

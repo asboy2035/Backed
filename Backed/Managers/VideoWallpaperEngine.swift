@@ -23,6 +23,8 @@ final class VideoWallpaperEngine {
     player.actionAtItemEnd = .none
     self.player = player
     
+    player.isMuted = !WallpaperLibrary.shared.isAudioEnabled
+    
     NotificationCenter.default.addObserver(
       forName: .AVPlayerItemDidPlayToEndTime,
       object: player.currentItem,
@@ -53,6 +55,10 @@ final class VideoWallpaperEngine {
     }
     
     player.play()
+  }
+  
+  func setMuted(_ muted: Bool) {
+      player?.isMuted = muted
   }
   
   func stop() {

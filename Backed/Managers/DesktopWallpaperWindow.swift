@@ -10,38 +10,60 @@ import AVKit
 
 final class DesktopWallpaperWindow {
   private var window: NSWindow?
+  private var playerView: AVPlayerView?
   
   func show(player: AVPlayer) {
     guard let screen = NSScreen.main else { return }
     
-    let view = AVPlayerView()
-    view.player = player
-    view.videoGravity = .resizeAspectFill
-    view.controlsStyle = .none
+    let win: NSWindow
     
-    let win = NSWindow(
-      contentRect: screen.frame,
-      styleMask: [.borderless],
-      backing: .buffered,
-      defer: false
-    )
+    if let existing = window {
+      win = existing
+    } else {
+      let newWindow = NSWindow(
+        contentRect: screen.frame,
+        styleMask: [.borderless],
+        backing: .buffered,
+        defer: false
+      )
+      
+      newWindow.level = NSWindow.Level(
+        rawValue: Int(CGWindowLevelForKey(.desktopWindow))
+      )
+      
+      newWindow.orderBack(nil)
+      newWindow.ignoresMouseEvents = true
+      newWindow.isExcludedFromWindowsMenu = true
+      newWindow.collectionBehavior = [.canJoinAllSpaces, .stationary]
+      newWindow.backgroundColor = .black
+      
+      window = newWindow
+      win = newWindow
+    }
     
-    win.level = NSWindow.Level(
-      rawValue: Int(CGWindowLevelForKey(.desktopWindow))
-    )
+    if let existingView = playerView {
+      existingView.player?.pause()
+      existingView.player = player
+      existingView.videoGravity = .resizeAspectFill
+      existingView.controlsStyle = .none
+    } else {
+      let newView = AVPlayerView()
+      newView.player = player
+      newView.videoGravity = .resizeAspectFill
+      newView.controlsStyle = .none
+      playerView = newView
+    }
     
+    win.setFrame(screen.frame, display: true)
+    if let playerView {
+      win.contentView = playerView
+    }
     win.orderBack(nil)
-    
-    win.ignoresMouseEvents = true
-    win.isExcludedFromWindowsMenu = true
-    win.collectionBehavior = [.canJoinAllSpaces, .stationary]
-    win.backgroundColor = .black
-    win.contentView = view
-    
-    window = win
   }
   
   func hide() {
+    playerView?.player?.pause()
+    playerView?.player = nil
     window?.orderOut(nil)
     window = nil
   }

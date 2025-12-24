@@ -15,6 +15,14 @@ struct BackedApp: App {
     WindowGroup {
       ContentView()
         .environmentObject(library)
+        .onAppear {
+          if let wallpaper = WallpaperLibrary.shared.activeWallpaper {
+            VideoWallpaperEngine.shared.set(wallpaper)
+            VideoWallpaperEngine.shared.setMuted(
+              !WallpaperLibrary.shared.isAudioEnabled
+            )
+          }
+        }
     }
   }
 }

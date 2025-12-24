@@ -17,6 +17,7 @@ final class WallpaperLibrary: ObservableObject {
   
   @Published private(set) var wallpapers: [Wallpaper] = []
   @Published var activeWallpaper: Wallpaper?
+  @Published var isAudioEnabled: Bool = true
   
   private let libraryURL: URL
   
@@ -31,6 +32,9 @@ final class WallpaperLibrary: ObservableObject {
     )
     
     load()
+    if UserDefaults.standard.object(forKey: "audioEnabled") != nil {
+      isAudioEnabled = UserDefaults.standard.bool(forKey: "audioEnabled")
+    }
   }
   
   func importVideo() {
@@ -86,13 +90,20 @@ final class WallpaperLibrary: ObservableObject {
     
     if let activePath = UserDefaults.standard.string(forKey: "activeWallpaper") {
       activeWallpaper = wallpapers.first { $0.url.path == activePath }
-      if let activeWallpaper {
-        VideoWallpaperEngine.shared.set(activeWallpaper)
-      }
+//      if let activeWallpaper {
+//        VideoWallpaperEngine.shared.set(activeWallpaper)
+//      }
     }
   }
   
   // -MARK: Management
+  func setAudioEnabled(_ enabled: Bool) {
+      // SwiftUI already updated isAudioEnabled via the binding.
+      // This method only applies side effects.
+      VideoWallpaperEngine.shared.setMuted(!enabled)
+      UserDefaults.standard.set(enabled, forKey: "audioEnabled")
+  }
+  
   func rename(_ wallpaper: Wallpaper, to newName: String) {
     guard let index = wallpapers.firstIndex(of: wallpaper) else { return }
     

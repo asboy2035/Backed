@@ -18,6 +18,16 @@ struct ContentView: View {
     .navigationTitle("Library")
     .modifier(SafeNavigationSubtitle(title: "Backed"))
     .toolbar {
+      ToolbarItem(placement: .navigation) {
+        Toggle(isOn: $library.isAudioEnabled) {
+            Label("Audio", systemImage: library.isAudioEnabled ? "speaker.wave.1" : "speaker.slash")
+        }
+        .tint(.accent)
+        .onChange(of: library.isAudioEnabled) { enabled in
+            library.setAudioEnabled(enabled)
+        }
+      }
+
       ToolbarItem {
         Button {
           library.importVideo()
