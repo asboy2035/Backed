@@ -1,0 +1,129 @@
+//
+//  WallpaperTileView.swift
+//  Backed
+//
+//  Created by ash on 12/24/25.
+//
+
+
+import SwiftUI
+import AVKit
+
+struct WallpaperTileView: View {
+  @EnvironmentObject var library: WallpaperLibrary
+  let wallpaper: Wallpaper
+  @State var showingRename: Bool = false
+  
+  var body: some View {
+    Button {
+      library.setActive(wallpaper)
+    } label: {
+      ZStack(alignment: .bottomLeading) {
+        VideoPlayerView(player: AVPlayer(url: wallpaper.thumbnailURL))
+          .aspectRatio(16.0 / 9.0, contentMode: .fit)
+          .clipped()
+          .disabled(true)
+        
+        Text(wallpaper.name)
+          .font(.headline)
+          .padding(4)
+          .background(
+            RoundedRectangle(cornerRadius: 10)
+              .fill(.ultraThinMaterial)
+          )
+          .padding(8)
+        
+        // Full rect to capture pointer events
+        Rectangle()
+          .fill(.background.opacity(0.001))
+          .ignoresSafeArea()
+      }
+      .clipShape(RoundedRectangle(cornerRadius: 18))
+      .overlay(
+        RoundedRectangle(cornerRadius: 18)
+          .stroke(
+            library.activeWallpaper == wallpaper ? Color.accentColor : .clear,
+            lineWidth: 3
+          )
+      )
+    }
+    .buttonStyle(.plain)
+    .contextMenu {
+      Button {
+        library.setActive(wallpaper)
+      } label: {
+        Label("Set", systemImage: "photo.badge.checkmark")
+      }
+      
+      Divider()
+      
+      Button {
+        showingRename = true
+      } label: {
+        Label("Rename", systemImage: "pencil")
+      }
+      
+      Button {
+        library.delete(wallpaper)
+      } label: {
+        Label("Delete", systemImage: "trash")
+      }
+    }
+    .sheet(isPresented: $showingRename) {
+      WallpaperRenameView(shown: $showingRename, wallpaper: wallpaper)
+        .environmentObject(library)
+    }
+  }
+}
+
+struct VideoPlayerView: NSViewRepresentable {
+    let player: AVPlayer
+    
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.player = player
+        view.showsFullScreenToggleButton = false
+        view.controlsStyle = .none
+        return view
+    }
+    
+    func updateNSView(_ nsView: AVPlayerView, context: Context) {
+        nsView.player = player
+    }
+}
+
+struct WallpaperRenameView: View {
+  @Binding var shown: Bool
+  let wallpaper: Wallpaper
+  @EnvironmentObject var library: WallpaperLibrary
+  @State var newName: String = ""
+  
+  var body: some View {
+    NavigationStack {
+      VStack {
+        Text("Rename Wallpaper")
+        TextField("Name", text: $newName)
+      }
+    }
+    .toolbar {
+      ToolbarItem(placement: .cancellationAction) {
+        Button {
+          shown = false
+        } label: {
+          Label("Cancel", systemImage: "xmark")
+        }
+      }
+      
+      ToolbarItem(placement: .confirmationAction) {
+        Button {
+          library.rename(wallpaper, to: newName)
+          shown = false
+        } label: {
+          Label("Rename", systemImage: "checkmark")
+        }
+        .buttonStyle(.borderedProminent)
+      }
+    }
+  }
+}
+
