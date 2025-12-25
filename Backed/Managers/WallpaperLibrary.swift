@@ -18,6 +18,7 @@ final class WallpaperLibrary: ObservableObject {
   @Published private(set) var wallpapers: [Wallpaper] = []
   @Published var activeWallpaper: Wallpaper?
   @Published var isAudioEnabled: Bool = true
+  @Published var folders: [WallpaperFolder] = []
   
   private let libraryURL: URL
   
@@ -75,6 +76,12 @@ final class WallpaperLibrary: ObservableObject {
       activeWallpaper?.url.path,
       forKey: "activeWallpaper"
     )
+    do {
+      let data = try JSONEncoder().encode(folders)
+      UserDefaults.standard.set(data, forKey: "folders")
+    } catch {
+      print("Failed to save folders:", error)
+    }
   }
   
   private func load() {
@@ -90,6 +97,13 @@ final class WallpaperLibrary: ObservableObject {
     
     if let activePath = UserDefaults.standard.string(forKey: "activeWallpaper") {
       activeWallpaper = wallpapers.first { $0.url.path == activePath }
+    }
+    if let data = UserDefaults.standard.data(forKey: "folders") {
+      do {
+        folders = try JSONDecoder().decode([WallpaperFolder].self, from: data)
+      } catch {
+        print("Failed to load folders:", error)
+      }
     }
   }
   
@@ -113,6 +127,7 @@ final class WallpaperLibrary: ObservableObject {
       try FileManager.default.moveItem(at: wallpaper.url, to: newURL)
       
       let updated = Wallpaper(
+        id: wallpaper.id,
         url: newURL,
         name: newName,
         thumbnailURL: newURL
@@ -150,6 +165,47 @@ final class WallpaperLibrary: ObservableObject {
     }
     
     wallpapers.remove(at: index)
+    for idx in folders.indices {
+      folders[idx].wallpaperIDs.removeAll { $0 == wallpaper.id }
+    }
+    save()
+  }
+  
+  func createFolder(name: String, systemImage: String = "folder") {
+    let folder = WallpaperFolder(name: name, systemImage: systemImage)
+    folders.append(folder)
+    save()
+  }
+  
+  func renameFolder(_ folder: WallpaperFolder, to newName: String) {
+    guard let i = folders.firstIndex(of: folder) else { return }
+    folders[i].name = newName
+    save()
+  }
+  
+  func changeFolderIcon(_ folder: WallpaperFolder, to systemImage: String) {
+    guard let i = folders.firstIndex(of: folder) else { return }
+    folders[i].systemImage = systemImage
+    save()
+  }
+  
+  func deleteFolder(_ folder: WallpaperFolder) {
+    folders.removeAll { $0.id == folder.id }
+    save()
+  }
+  
+  func addWallpaper(_ wallpaper: Wallpaper, to folder: WallpaperFolder) {
+    guard let i = folders.firstIndex(of: folder) else { return }
+    let id = wallpaper.id
+    if !folders[i].wallpaperIDs.contains(id) {
+      folders[i].wallpaperIDs.append(id)
+      save()
+    }
+  }
+  
+  func removeWallpaper(_ wallpaper: Wallpaper, from folder: WallpaperFolder) {
+    guard let i = folders.firstIndex(of: folder) else { return }
+    folders[i].wallpaperIDs.removeAll { $0 == wallpaper.id }
     save()
   }
 }

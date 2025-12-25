@@ -63,6 +63,18 @@ struct WallpaperTileView: View {
         Label("Rename", systemImage: "pencil")
       }
       
+      Menu {
+        ForEach(library.folders) { folder in
+          Button {
+            library.addWallpaper(wallpaper, to: folder)
+          } label: {
+            Label(folder.name, systemImage: folder.systemImage)
+          }
+        }
+      } label: {
+        Label("Add to Folder...", systemImage: "folder.badge.plus")
+      }
+      
       Button {
         library.delete(wallpaper)
       } label: {
@@ -156,4 +168,3 @@ struct WallpaperRenameView: View {
     }
   }
 }
-

@@ -8,9 +8,16 @@
 
 import Foundation
 
-struct Wallpaper: Identifiable, Hashable {
-  let id = UUID()
-  let url: URL
-  let name: String
-  let thumbnailURL: URL
+struct Wallpaper: Identifiable, Codable, Equatable {
+  let id: UUID
+  var url: URL
+  var name: String
+  var thumbnailURL: URL
+
+  init(id: UUID = UUID(), url: URL, name: String, thumbnailURL: URL) {
+    self.id = id
+    self.url = url
+    self.name = name
+    self.thumbnailURL = thumbnailURL
+  }
 }

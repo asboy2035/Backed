@@ -11,11 +11,12 @@ struct ContentView: View {
   @EnvironmentObject var library: WallpaperLibrary
   
   var body: some View {
-    ScrollView {
+    NavigationSplitView {
+      SidebarView()
+    } detail: {
       WallpaperGridView()
     }
-    .frame(minWidth: 450, minHeight: 300)
-    .navigationTitle("Library")
+    .frame(minWidth: 750, minHeight: 450)
     .modifier(SafeNavigationSubtitle(title: "Backed"))
     .toolbar {
       ToolbarItem(placement: .navigation) {
@@ -29,13 +30,21 @@ struct ContentView: View {
       }
 
       ToolbarItem {
-        Button {
-          library.importVideo()
+        Menu {
+          Button {
+            library.importVideo()
+          } label: {
+            Label("Video", systemImage: "square.and.arrow.down")
+          }
+          
+          Button {
+            library.createFolder(name: "New Folder")
+          } label: {
+            Label("Folder", systemImage: "folder.badge.plus")
+          }
         } label: {
-          Label("Import", systemImage: "square.and.arrow.down")
+          Label("New...", systemImage: "plus")
         }
-        .buttonStyle(.borderedProminent)
-        .tint(.accent)
       }
     }
   }

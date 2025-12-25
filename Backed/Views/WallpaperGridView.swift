@@ -23,6 +23,7 @@ struct WallpaperGridView: View {
         }
       }
       .safeAreaPadding()
+      .navigationTitle("All")
     }
   }
 }
