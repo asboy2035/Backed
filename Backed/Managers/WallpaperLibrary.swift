@@ -92,9 +92,6 @@ final class WallpaperLibrary: ObservableObject {
     
     if let activePath = UserDefaults.standard.string(forKey: "activeWallpaper") {
       activeWallpaper = wallpapers.first { $0.url.path == activePath }
-      if let wp = activeWallpaper {
-        VideoWallpaperEngine.shared.set(wp)
-      }
     }
     if let data = UserDefaults.standard.data(forKey: "folders") {
       do {

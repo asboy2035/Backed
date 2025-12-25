@@ -17,21 +17,13 @@ struct FolderGridView: View {
     }
   }
   
-  private let columns = [GridItem(.adaptive(minimum: 200), spacing: 16)]
+  private let columns = [GridItem(.adaptive(minimum: 200), spacing: 20)]
   
   var body: some View {
     ScrollView {
-      LazyVGrid(columns: columns, spacing: 16) {
+      LazyVGrid(columns: columns, spacing: 20) {
         ForEach(items) { wallpaper in
-          WallpaperTileView(wallpaper: wallpaper)
-            .onTapGesture {
-              VideoWallpaperEngine.shared.set(wallpaper)
-            }
-            .contextMenu {
-              Button("Remove from Folder") {
-                library.removeWallpaper(wallpaper, from: folder)
-              }
-            }
+          WallpaperTileView(wallpaper: wallpaper, folder: folder)
         }
       }
       .padding()

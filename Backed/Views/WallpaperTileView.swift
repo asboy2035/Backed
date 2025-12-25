@@ -13,6 +13,7 @@ struct WallpaperTileView: View {
   @EnvironmentObject var library: WallpaperLibrary
   let wallpaper: Wallpaper
   @State var showingRename: Bool = false
+  var folder: WallpaperFolder? = nil
   
   var body: some View {
     Button {
@@ -62,6 +63,14 @@ struct WallpaperTileView: View {
       } label: {
         Label("Rename", systemImage: "pencil")
       }
+            
+      Button {
+        library.delete(wallpaper)
+      } label: {
+        Label("Delete", systemImage: "trash")
+      }
+      
+      Divider()
       
       Menu {
         ForEach(library.folders) { folder in
@@ -74,11 +83,13 @@ struct WallpaperTileView: View {
       } label: {
         Label("Add to Folder...", systemImage: "folder.badge.plus")
       }
-      
-      Button {
-        library.delete(wallpaper)
-      } label: {
-        Label("Delete", systemImage: "trash")
+
+      if (folder != nil) {
+        Button {
+          library.removeWallpaper(wallpaper, from: folder!)
+        } label: {
+          Label("Remove from \(folder?.name ?? "Folder")", systemImage: "folder.badge.minus")
+        }
       }
       
       Divider()
