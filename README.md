@@ -9,6 +9,7 @@ Lock screen and login screen backgrounds are explicitly out of scope for the mai
 ## Features
 - Use videos as wallpapers
 - Manage your wallpapers in the Backed library
+- Organize wallpapers in folders
 - Beautiful interface :3
 
 

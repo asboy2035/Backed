@@ -21,6 +21,49 @@ struct FolderGridView: View {
   
   var body: some View {
     ScrollView {
+      HStack(alignment: .bottom) {
+        HStack {
+          Image(systemName: folder.systemImage)
+          VStack(alignment: .leading) {
+            Text("\(folder.wallpaperIDs.count) Items")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+            Text(folder.name)
+          }
+        }
+        .font(.largeTitle)
+        
+        Spacer()
+        
+        Image(systemName: "folder")
+          .font(.system(size: 72))
+          .foregroundStyle(
+            LinearGradient(
+              gradient: Gradient(colors: [
+                Color.accent.opacity(0.6),
+                Color.accent.opacity(0.2)
+              ]),
+              startPoint: .topTrailing,
+              endPoint: .bottomLeading
+            )
+          )
+      }
+      .padding()
+      .background(
+        Rectangle()
+          .fill(
+            LinearGradient(
+              gradient: Gradient(colors: [
+                Color.accent.opacity(0.0),
+                Color.accent.opacity(0.3)
+              ]),
+              startPoint: .top,
+              endPoint: .bottom
+            )
+          )
+          .ignoresSafeArea()
+      )
+      
       LazyVGrid(columns: columns, spacing: 20) {
         ForEach(items) { wallpaper in
           WallpaperTileView(wallpaper: wallpaper, folder: folder)
@@ -30,4 +73,13 @@ struct FolderGridView: View {
     }
     .navigationTitle(folder.name)
   }
+}
+
+#Preview {
+  @Previewable @StateObject var library = WallpaperLibrary.shared
+  let testFolder = WallpaperFolder(name: "Test", systemImage: "gear")
+  
+  FolderGridView(folder: testFolder)
+    .frame(minWidth: 450, maxWidth: 500)
+    .environmentObject(library)
 }
