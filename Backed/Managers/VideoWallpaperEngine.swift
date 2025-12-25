@@ -5,7 +5,6 @@
 //  Created by ash on 12/24/25.
 //
 
-
 import AVFoundation
 import AppKit
 
@@ -42,16 +41,20 @@ final class VideoWallpaperEngine {
       forName: NSWorkspace.willSleepNotification,
       object: nil,
       queue: .main
-    ) { [weak self] _ in
-      self?.player?.pause()
+    ) { @Sendable [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.player?.pause()
+      }
     }
     
     wakeObserver = workspace.addObserver(
       forName: NSWorkspace.didWakeNotification,
       object: nil,
       queue: .main
-    ) { [weak self] _ in
-      self?.player?.play()
+    ) { @Sendable [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.player?.play()
+      }
     }
     
     player.play()

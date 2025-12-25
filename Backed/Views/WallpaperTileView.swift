@@ -68,10 +68,19 @@ struct WallpaperTileView: View {
       } label: {
         Label("Delete", systemImage: "trash")
       }
+      
+      Divider()
+      
+      Button {
+        library.stopPlaying()
+      } label: {
+        Label("Stop", systemImage: "stop")
+      }
     }
     .sheet(isPresented: $showingRename) {
       WallpaperRenameView(shown: $showingRename, wallpaper: wallpaper)
         .environmentObject(library)
+        .frame(maxWidth: 400)
     }
   }
 }
@@ -102,16 +111,35 @@ struct WallpaperRenameView: View {
     NavigationStack {
       VStack {
         Text("Rename Wallpaper")
+          .font(.headline)
+        
         TextField("Name", text: $newName)
+          .textFieldStyle(.plain)
+          .font(.title)
       }
+      .padding(.bottom, 32)
     }
+    .padding()
     .toolbar {
+      ToolbarItem(placement: .destructiveAction) {
+        Button {
+          library.delete(wallpaper)
+        } label: {
+          Label("Delete", systemImage: "trash")
+            .padding(.vertical, 4)
+        }
+        .tint(.red)
+        .clipShape(.capsule)
+      }
+      
       ToolbarItem(placement: .cancellationAction) {
         Button {
           shown = false
         } label: {
           Label("Cancel", systemImage: "xmark")
+            .padding(.vertical, 4)
         }
+        .clipShape(.capsule)
       }
       
       ToolbarItem(placement: .confirmationAction) {
@@ -120,8 +148,10 @@ struct WallpaperRenameView: View {
           shown = false
         } label: {
           Label("Rename", systemImage: "checkmark")
+            .padding(.vertical, 4)
         }
         .buttonStyle(.borderedProminent)
+        .clipShape(.capsule)
       }
     }
   }

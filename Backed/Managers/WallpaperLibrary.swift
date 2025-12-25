@@ -90,9 +90,6 @@ final class WallpaperLibrary: ObservableObject {
     
     if let activePath = UserDefaults.standard.string(forKey: "activeWallpaper") {
       activeWallpaper = wallpapers.first { $0.url.path == activePath }
-//      if let activeWallpaper {
-//        VideoWallpaperEngine.shared.set(activeWallpaper)
-//      }
     }
   }
   
@@ -134,6 +131,11 @@ final class WallpaperLibrary: ObservableObject {
     }
   }
   
+  func stopPlaying() {
+    activeWallpaper = nil
+    VideoWallpaperEngine.shared.stop()
+  }
+  
   func delete(_ wallpaper: Wallpaper) {
     guard let index = wallpapers.firstIndex(of: wallpaper) else { return }
     
@@ -144,8 +146,7 @@ final class WallpaperLibrary: ObservableObject {
     }
     
     if activeWallpaper == wallpaper {
-      activeWallpaper = nil
-      VideoWallpaperEngine.shared.stop()
+      stopPlaying()
     }
     
     wallpapers.remove(at: index)
