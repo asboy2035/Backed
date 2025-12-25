@@ -68,10 +68,9 @@ final class WallpaperLibrary: ObservableObject {
   }
   
   private func save() {
-    UserDefaults.standard.set(
-      wallpapers.map { $0.url.path },
-      forKey: "wallpapers"
-    )
+    if let data = try? JSONEncoder().encode(wallpapers) {
+      UserDefaults.standard.set(data, forKey: "wallpapers")
+    }
     UserDefaults.standard.set(
       activeWallpaper?.url.path,
       forKey: "activeWallpaper"
@@ -85,18 +84,17 @@ final class WallpaperLibrary: ObservableObject {
   }
   
   private func load() {
-    let paths = UserDefaults.standard.stringArray(forKey: "wallpapers") ?? []
-    wallpapers = paths.map {
-      let url = URL(fileURLWithPath: $0)
-      return Wallpaper(
-        url: url,
-        name: url.deletingPathExtension().lastPathComponent,
-        thumbnailURL: url
-      )
+    if let data = UserDefaults.standard.data(forKey: "wallpapers") {
+      if let decoded = try? JSONDecoder().decode([Wallpaper].self, from: data) {
+        wallpapers = decoded
+      }
     }
     
     if let activePath = UserDefaults.standard.string(forKey: "activeWallpaper") {
       activeWallpaper = wallpapers.first { $0.url.path == activePath }
+      if let wp = activeWallpaper {
+        VideoWallpaperEngine.shared.set(wp)
+      }
     }
     if let data = UserDefaults.standard.data(forKey: "folders") {
       do {
@@ -109,10 +107,10 @@ final class WallpaperLibrary: ObservableObject {
   
   // -MARK: Management
   func setAudioEnabled(_ enabled: Bool) {
-      // SwiftUI already updated isAudioEnabled via the binding.
-      // This method only applies side effects.
-      VideoWallpaperEngine.shared.setMuted(!enabled)
-      UserDefaults.standard.set(enabled, forKey: "audioEnabled")
+    // SwiftUI already updated isAudioEnabled via the binding.
+    // This method only applies side effects.
+    VideoWallpaperEngine.shared.setMuted(!enabled)
+    UserDefaults.standard.set(enabled, forKey: "audioEnabled")
   }
   
   func rename(_ wallpaper: Wallpaper, to newName: String) {
