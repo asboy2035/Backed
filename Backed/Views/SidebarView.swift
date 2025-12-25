@@ -19,9 +19,10 @@ struct SidebarView: View {
           Label("All", systemImage: "rectangle.grid.2x2")
         }
         
-        NavigationLink(destination: SettingsView()) {
-          Label("Settings", systemImage: "gear")
-        }
+        Label("Settings", systemImage: "gear")
+          .onTapGesture {
+            SettingsController.shared.showSettings()
+          }
       }
       
       Section("Folders") {

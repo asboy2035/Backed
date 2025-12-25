@@ -16,6 +16,7 @@ struct FolderGridView: View {
       library.wallpapers.first { $0.id == id }
     }
   }
+  @State var showingEditor: Bool = false
   
   private let columns = [GridItem(.adaptive(minimum: 200), spacing: 20)]
   
@@ -35,18 +36,30 @@ struct FolderGridView: View {
         
         Spacer()
         
-        Image(systemName: "folder")
-          .font(.system(size: 72))
-          .foregroundStyle(
-            LinearGradient(
-              gradient: Gradient(colors: [
-                Color.accent.opacity(0.6),
-                Color.accent.opacity(0.2)
-              ]),
-              startPoint: .topTrailing,
-              endPoint: .bottomLeading
+        ZStack(alignment: .bottomTrailing) {
+          Image(systemName: "folder")
+            .font(.system(size: 72))
+            .foregroundStyle(
+              LinearGradient(
+                gradient: Gradient(colors: [
+                  Color.accent.opacity(0.6),
+                  Color.accent.opacity(0.2)
+                ]),
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+              )
             )
-          )
+          
+          Button {
+            showingEditor = true
+          } label: {
+            Label("Edit", systemImage: "pencil")
+              .padding(.vertical, 4)
+          }
+          .buttonStyle(.borderedProminent)
+          .clipShape(.capsule)
+          .shadow(radius: 6, y: 6)
+        }
       }
       .padding()
       .background(
@@ -72,6 +85,10 @@ struct FolderGridView: View {
       .padding()
     }
     .navigationTitle(folder.name)
+    .sheet(isPresented: $showingEditor) {
+      EditFolderSheet(name: folder.name, icon: folder.systemImage, folder: folder)
+        .environmentObject(library)
+    }
   }
 }
 

@@ -22,5 +22,15 @@ struct BackedApp: App {
           }
         }
     }
+    .commands {
+      CommandGroup(replacing: .appSettings) {
+        Button {
+          SettingsController.shared.showSettings()
+        } label: {
+          Label("Settings…", systemImage: "gear")
+        }
+        .keyboardShortcut(",", modifiers: [.command])
+      }
+    }
   }
 }
