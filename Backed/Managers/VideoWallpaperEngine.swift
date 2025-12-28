@@ -19,9 +19,13 @@ final class VideoWallpaperEngine {
   private var currentMode: WallpaperMode = .sameOnAll
   
   func set(_ wallpaper: Wallpaper) {
-    // Use default mode with current displays
-    let displays = DisplayManager.shared.currentDisplays
-    set(wallpaper, mode: .sameOnAll, displays: displays)
+    // Use active configuration if available, otherwise default
+    if let activeConfig = DisplayManager.shared.activeConfiguration {
+      set(wallpaper, mode: activeConfig.wallpaperMode, displays: activeConfig.displays)
+    } else {
+      let displays = DisplayManager.shared.currentDisplays
+      set(wallpaper, mode: .sameOnAll, displays: displays)
+    }
   }
   
   func set(_ wallpaper: Wallpaper, mode: WallpaperMode, displays: [DisplayInfo]) {
