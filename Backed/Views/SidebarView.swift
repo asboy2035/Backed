@@ -23,6 +23,11 @@ struct SidebarView: View {
           .onTapGesture {
             SettingsController.shared.showSettings()
           }
+        
+        Label("Displays", systemImage: "display.2")
+          .onTapGesture {
+            DisplaysController.shared.showDisplays()
+          }
       }
       
       Section("Folders") {
