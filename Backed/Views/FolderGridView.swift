@@ -58,7 +58,7 @@ struct FolderGridView: View {
           }
           .buttonStyle(.borderedProminent)
           .clipShape(.capsule)
-          .shadow(radius: 6, y: 6)
+          .safeGlass()
         }
       }
       .padding()

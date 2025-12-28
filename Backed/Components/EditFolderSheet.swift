@@ -43,39 +43,25 @@ struct EditFolderSheet: View {
     .frame(width: 450)
     .padding()
     .toolbar {
-      ToolbarItem(placement: .cancellationAction) {
-        Button {
-          dismiss()
-        } label: {
-          Label("Cancel", systemImage: "xmark")
-            .padding(.vertical, 4)
-        }
-        .clipShape(.capsule)
+      SheetAction(placement: .cancellationAction) {
+        dismiss()
+      } label: {
+        Label("Cancel", systemImage: "xmark")
       }
 
-      ToolbarItem(placement: .confirmationAction) {
-        Button {
-          library.renameFolder(folder, to: name)
-          library.changeFolderIcon(folder, to: icon)
-          dismiss()
-        } label: {
-          Label("Done", systemImage: "checkmark")
-            .padding(.vertical, 4)
-        }
-        .buttonStyle(.borderedProminent)
-        .clipShape(.capsule)
+      SheetAction(placement: .confirmationAction, disabled: .constant(name.isEmpty)) {
+        library.renameFolder(folder, to: name)
+        library.changeFolderIcon(folder, to: icon)
+        dismiss()
+      } label: {
+        Label("Done", systemImage: "checkmark")
       }
-      
-      ToolbarItem(placement: .destructiveAction) {
-        Button {
-          library.deleteFolder(folder)
-          dismiss()
-        } label: {
-          Label("Delete", systemImage: "trash")
-            .padding(.vertical, 4)
-        }
-        .tint(.red)
-        .clipShape(.capsule)
+
+      SheetAction(placement: .destructiveAction) {
+        library.deleteFolder(folder)
+        dismiss()
+      } label: {
+        Label("Delete", systemImage: "trash")
       }
     }
   }

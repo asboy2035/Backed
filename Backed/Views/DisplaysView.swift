@@ -11,9 +11,9 @@ import Combine
 final class DisplaysController {
   static let shared = DisplaysController()
   private init() {}
-
+  
   private var window: NSWindow?
-
+  
   func showDisplays() {
     if window == nil {
       let hosting = NSHostingController(rootView: DisplaysView())
@@ -21,8 +21,7 @@ final class DisplaysController {
         contentViewController: hosting
       )
       win.title = "Displays"
-      win.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-      win.toolbarStyle = .unifiedCompact
+      win.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
       win.setFrameAutosaveName("DisplaysWindow")
       window = win
     }
@@ -56,12 +55,57 @@ struct DisplaysView: View {
   }
   
   var body: some View {
-    VStack(spacing: 0) {
-      // Canvas area for dragging displays
-      GeometryReader { geometry in
-        ZStack {
-          Color(nsColor: .controlBackgroundColor)
-          
+    NavigationSplitView {
+      if configurations.isEmpty {
+        Text("No saved configurations")
+      } else {
+        List {
+          Section("Configurations") {
+            ForEach(configurations) { config in
+              Label {
+                VStack(alignment: .leading, spacing: 2) {
+                  Text(config.name)
+                  Text("\(config.displays.count) display\(config.displays.count == 1 ? "" : "s") • \(config.wallpaperMode.description)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+              } icon: {
+                Image(systemName: config.id == selectedConfiguration?.id ?
+                      "checkmark" : "display.2"
+                )
+              }
+              .contextMenu {
+                Button {
+                  configToRename = config
+                  newConfigName = config.name
+                  showingRenameSheet = true
+                } label: {
+                  Label("Rename", systemImage: "pencil")
+                }
+                
+                Button(role: .destructive) {
+                  displayManager.deleteConfiguration(config)
+                } label: {
+                  Label("Delete", systemImage: "trash")
+                }
+              }
+              .frame(minWidth: 0, maxWidth: .infinity)
+              .padding(8)
+              .contentShape(Rectangle())
+              .background(config.id == selectedConfiguration?.id ? Color.accentColor : Color.clear)
+              .clipShape(RoundedRectangle(cornerRadius: 10))
+              .onTapGesture {
+                loadConfiguration(config)
+              }
+            }
+          }
+        }
+        .frame(minWidth: 250)
+      }
+    } detail: {
+      VStack(spacing: 0) {
+        // Canvas area for dragging displays
+        GeometryReader { geometry in
           ForEach(workingDisplays) { display in
             DisplayPreview(
               display: display,
@@ -85,94 +129,51 @@ struct DisplaysView: View {
                 }
             )
             .contextMenu {
-              Button("Set as Primary") {
+              Button {
                 setPrimaryDisplay(display)
+              } label: {
+                Label("Set as Primary", systemImage: "display.and.arrow.down")
               }
               .disabled(display.isPrimary)
             }
           }
         }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      
-      Divider()
-      
-      // Settings panel
-      VStack(alignment: .leading, spacing: 16) {
-        HStack {
-          Text("Wallpaper Mode:")
-            .fontWeight(.medium)
-          
-          Picker("", selection: $selectedWallpaperMode) {
-            ForEach(WallpaperMode.allCases, id: \.self) { mode in
-              Text(mode.description).tag(mode)
-            }
-          }
-          .pickerStyle(.segmented)
-          .frame(maxWidth: 400)
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         
-        if let wallpaper = wallpaperLibrary.activeWallpaper {
-          HStack {
-            Text("Active Wallpaper:")
-              .fontWeight(.medium)
-            Text(wallpaper.name)
-              .foregroundColor(.secondary)
-          }
-        }
-      }
-      .padding()
-      .background(Color(nsColor: .controlBackgroundColor))
-    }
-    .navigationTitle("Displays")
-    .toolbar {
-      ToolbarItem(placement: .navigation) {
-        Menu {
-          if configurations.isEmpty {
-            Text("No saved configurations")
-              .foregroundColor(.secondary)
-          } else {
-            ForEach(configurations) { config in
-              Button {
-                loadConfiguration(config)
-              } label: {
-                HStack {
-                  if config.id == selectedConfiguration?.id {
-                    Image(systemName: "checkmark")
-                  }
-                  VStack(alignment: .leading, spacing: 2) {
-                    Text(config.name)
-                    Text("\(config.displays.count) display\(config.displays.count == 1 ? "" : "s") • \(config.wallpaperMode.description)")
-                      .font(.caption)
-                      .foregroundColor(.secondary)
-                  }
-                }
-              }
-              .contextMenu {
-                Button("Rename") {
-                  configToRename = config
-                  newConfigName = config.name
-                  showingRenameSheet = true
-                }
-                Button("Delete", role: .destructive) {
-                  displayManager.deleteConfiguration(config)
-                }
+        Divider()
+        
+        // Settings panel
+        Form {
+          Section("Options") {
+            Picker("Wallpaper Mode", selection: $selectedWallpaperMode) {
+              ForEach(WallpaperMode.allCases, id: \.self) { mode in
+                Text(mode.description).tag(mode)
               }
             }
             
-            Divider()
+            if let wallpaper = wallpaperLibrary.activeWallpaper {
+              HStack {
+                Text("Active Wallpaper")
+                  .fontWeight(.medium)
+                Spacer()
+                Text(wallpaper.name)
+                  .foregroundStyle(.secondary)
+              }
+            }
           }
-          
-          Button("New Configuration...") {
-            showingNewConfigSheet = true
-          }
-        } label: {
-          Label(
-            selectedConfiguration?.name ?? "Select Configuration",
-            systemImage: "rectangle.on.rectangle.slash"
-          )
         }
-        .frame(minWidth: 200)
+        .formStyle(.grouped)
+        .frame(maxHeight: 150)
+      }
+    }
+    .navigationTitle("Displays")
+    .toolbar {
+      ToolbarItem {
+        Button {
+          showingNewConfigSheet = true
+        } label: {
+          Label("New Configuration", systemImage: "plus")
+        }
       }
       
       ToolbarItem {
@@ -181,6 +182,8 @@ struct DisplaysView: View {
         } label: {
           Label("Apply", systemImage: "checkmark")
         }
+        .buttonStyle(.borderedProminent)
+        .tint(Color.accent)
         .keyboardShortcut(.return, modifiers: .command)
       }
     }
@@ -197,8 +200,8 @@ struct DisplaysView: View {
         // Only update displays if we want to force sync, but user might be editing.
         // Let's only update if the current selected config was the one that changed.
         if selectedConfiguration?.id == active.id {
-             workingDisplays = active.displays
-             calculateScale()
+          workingDisplays = active.displays
+          calculateScale()
         }
       }
     }
@@ -279,27 +282,27 @@ struct DisplaysView: View {
     let snapThreshold: CGFloat = 20
     
     for other in workingDisplays where other.id != display.id {
-        // Snap X
-        if abs(newOrigin.x - other.frame.maxX) < snapThreshold {
-            newOrigin.x = other.frame.maxX
-        } else if abs(newOrigin.x - other.frame.minX) < snapThreshold {
-            newOrigin.x = other.frame.minX
-        } else if abs((newOrigin.x + display.frame.width) - other.frame.minX) < snapThreshold {
-            newOrigin.x = other.frame.minX - display.frame.width
-        } else if abs((newOrigin.x + display.frame.width) - other.frame.maxX) < snapThreshold {
-            newOrigin.x = other.frame.maxX - display.frame.width
-        }
-        
-        // Snap Y
-        if abs(newOrigin.y - other.frame.maxY) < snapThreshold {
-            newOrigin.y = other.frame.maxY
-        } else if abs(newOrigin.y - other.frame.minY) < snapThreshold {
-            newOrigin.y = other.frame.minY
-        } else if abs((newOrigin.y + display.frame.height) - other.frame.minY) < snapThreshold {
-            newOrigin.y = other.frame.minY - display.frame.height
-        } else if abs((newOrigin.y + display.frame.height) - other.frame.maxY) < snapThreshold {
-            newOrigin.y = other.frame.maxY - display.frame.height
-        }
+      // Snap X
+      if abs(newOrigin.x - other.frame.maxX) < snapThreshold {
+        newOrigin.x = other.frame.maxX
+      } else if abs(newOrigin.x - other.frame.minX) < snapThreshold {
+        newOrigin.x = other.frame.minX
+      } else if abs((newOrigin.x + display.frame.width) - other.frame.minX) < snapThreshold {
+        newOrigin.x = other.frame.minX - display.frame.width
+      } else if abs((newOrigin.x + display.frame.width) - other.frame.maxX) < snapThreshold {
+        newOrigin.x = other.frame.maxX - display.frame.width
+      }
+      
+      // Snap Y
+      if abs(newOrigin.y - other.frame.maxY) < snapThreshold {
+        newOrigin.y = other.frame.maxY
+      } else if abs(newOrigin.y - other.frame.minY) < snapThreshold {
+        newOrigin.y = other.frame.minY
+      } else if abs((newOrigin.y + display.frame.height) - other.frame.minY) < snapThreshold {
+        newOrigin.y = other.frame.minY - display.frame.height
+      } else if abs((newOrigin.y + display.frame.height) - other.frame.maxY) < snapThreshold {
+        newOrigin.y = other.frame.maxY - display.frame.height
+      }
     }
     
     var updatedDisplay = display
@@ -364,6 +367,7 @@ struct DisplayPreview: View {
   let display: DisplayInfo
   let scale: CGFloat
   let wallpaper: Wallpaper?
+  let cornerRadius: CGFloat = 16
   
   var body: some View {
     ZStack {
@@ -386,23 +390,25 @@ struct DisplayPreview: View {
         VStack(spacing: 4) {
           Text(display.name)
             .font(.system(size: 14, weight: .semibold))
-            .foregroundColor(.white)
+            .foregroundStyle(.white)
+          
           Text("Display \(display.index)")
             .font(.system(size: 11))
-            .foregroundColor(.white.opacity(0.8))
+            .foregroundStyle(.white.opacity(0.8))
+          
           if display.isPrimary {
             Text("Primary")
-              .font(.system(size: 10, weight: .medium))
-              .foregroundColor(.white)
+              .font(.headline)
+              .foregroundStyle(.white)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
-              .background(Color.blue.opacity(0.8))
-              .cornerRadius(4)
+              .background(Color.accentColor.opacity(0.8))
+              .cornerRadius(cornerRadius/2)
           }
         }
         .padding(8)
         .background(Color.black.opacity(0.5))
-        .cornerRadius(8)
+        .cornerRadius(cornerRadius)
         .padding(8)
       }
     }
@@ -410,10 +416,10 @@ struct DisplayPreview: View {
       width: display.frame.width * scale,
       height: display.frame.height * scale
     )
-    .cornerRadius(8)
+    .cornerRadius(cornerRadius)
     .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(display.isPrimary ? Color.blue : Color.white.opacity(0.3), lineWidth: 2)
+      RoundedRectangle(cornerRadius: cornerRadius)
+        .stroke(display.isPrimary ? Color.accentColor : Color.primary.opacity(0.3), lineWidth: 2)
     )
     .shadow(radius: 4)
   }
@@ -425,29 +431,29 @@ struct NewConfigurationSheet: View {
   @Environment(\.dismiss) private var dismiss
   
   var body: some View {
-    VStack(spacing: 20) {
-      Text("New Display Configuration")
-        .font(.headline)
-      
-      TextField("Configuration Name", text: $configName)
-        .textFieldStyle(.roundedBorder)
-        .frame(width: 300)
-      
-      HStack {
-        Button("Cancel") {
-          dismiss()
-        }
-        .keyboardShortcut(.cancelAction)
-        
-        Button("Save") {
-          onSave()
-        }
-        .keyboardShortcut(.defaultAction)
-        .disabled(configName.isEmpty)
-      }
+    VStack {
+      TextField("New Configuration...", text: $configName)
+        .textFieldStyle(.plain)
+        .font(.largeTitle)
     }
     .padding()
     .frame(width: 400, height: 150)
+    .toolbar {
+      SheetAction(placement: .cancellationAction) {
+        dismiss()
+      } label: {
+        Label("Cancel", systemImage: "xmark")
+      }
+      
+      SheetAction(
+        placement: .confirmationAction,
+        disabled: .constant(configName.isEmpty)
+      ) {
+        onSave()
+      } label: {
+        Label("Save", systemImage: "checkmark")
+      }
+    }
   }
 }
 
@@ -457,28 +463,28 @@ struct RenameConfigurationSheet: View {
   @Environment(\.dismiss) private var dismiss
   
   var body: some View {
-    VStack(spacing: 20) {
-      Text("Rename Configuration")
-        .font(.headline)
-      
+    VStack {
       TextField("Configuration Name", text: $configName)
-        .textFieldStyle(.roundedBorder)
-        .frame(width: 300)
-      
-      HStack {
-        Button("Cancel") {
-          dismiss()
-        }
-        .keyboardShortcut(.cancelAction)
-        
-        Button("Save") {
-          onSave()
-        }
-        .keyboardShortcut(.defaultAction)
-        .disabled(configName.isEmpty)
-      }
+        .textFieldStyle(.plain)
+        .font(.largeTitle)
     }
     .padding()
     .frame(width: 400, height: 150)
+    .toolbar {
+      SheetAction(placement: .cancellationAction) {
+        dismiss()
+      } label: {
+        Label("Cancel", systemImage: "xmark")
+      }
+      
+      SheetAction(
+        placement: .confirmationAction,
+        disabled: .constant(configName.isEmpty)
+      ) {
+        onSave()
+      } label: {
+        Label("Save", systemImage: "checkmark")
+      }
+    }
   }
 }

@@ -21,14 +21,14 @@ struct ContentView: View {
     .toolbar {
       ToolbarItem(placement: .navigation) {
         Toggle(isOn: $library.isAudioEnabled) {
-            Label("Audio", systemImage: library.isAudioEnabled ? "speaker.wave.1" : "speaker.slash")
+          Label("Audio", systemImage: library.isAudioEnabled ? "speaker.wave.1" : "speaker.slash")
         }
         .tint(.accent)
         .onChange(of: library.isAudioEnabled) { enabled in
-            library.setAudioEnabled(enabled)
+          library.setAudioEnabled(enabled)
         }
       }
-
+      
       ToolbarItem {
         Menu {
           Button {
@@ -51,5 +51,8 @@ struct ContentView: View {
 }
 
 #Preview {
+  @Previewable @StateObject var library = WallpaperLibrary.shared
+
   ContentView()
+    .environmentObject(library)
 }
