@@ -1,4 +1,5 @@
 ![Backed](/Images/Desktop.jpeg)
+![Backed Display Manager](/Images/Displays.png)
 
 # Backed
 Backed is a macOS application that allows you to use video files as live desktop wallpapers. 
@@ -6,22 +7,14 @@ It provides a clean SwiftUI-based interface for managing a personal wallpaper li
 The project intentionally focuses on **desktop wallpapers only**. 
 Lock screen and login screen backgrounds are explicitly out of scope for the main app due to macOS architectural constraints.
 
+
 ## Features
 - Use videos as wallpapers
+- Configure display handling, including:
+- Stretching a wallpaper across multiple displays
 - Manage your wallpapers in the Backed library
 - Organize wallpapers in folders
 - Beautiful interface :3
-
-
-## Non-Goals
-Backed deliberately does **not** attempt to:
-
-- Replace the macOS lock screen or login background
-- Render video behind the login UI
-- Modify system files or disable SIP
-- Use ScreenSaverEngine or `.saver` bundles
-
-These behaviors require separate pipelines and are intentionally excluded to keep Backed stable, understandable, and user-space safe.
 
 
 ## Requirements
