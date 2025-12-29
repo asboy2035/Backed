@@ -14,6 +14,10 @@ struct WallpaperTileView: View {
   let wallpaper: Wallpaper
   @State var showingRename: Bool = false
   var folder: WallpaperFolder? = nil
+  var menuMode: Bool = false
+  var radius: CGFloat {
+    menuMode ? 12 : 18
+  }
   
   var body: some View {
     Button {
@@ -26,10 +30,10 @@ struct WallpaperTileView: View {
           .disabled(true)
         
         Text(wallpaper.name)
-          .font(.headline)
+          .font(menuMode ? .system(size: 12) : .headline)
           .padding(4)
           .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: radius - 6)
               .fill(.ultraThinMaterial)
           )
           .padding(8)
@@ -39,9 +43,9 @@ struct WallpaperTileView: View {
           .fill(.background.opacity(0.001))
           .ignoresSafeArea()
       }
-      .clipShape(RoundedRectangle(cornerRadius: 18))
+      .clipShape(RoundedRectangle(cornerRadius: radius))
       .overlay(
-        RoundedRectangle(cornerRadius: 18)
+        RoundedRectangle(cornerRadius: radius)
           .stroke(
             library.activeWallpaper == wallpaper ? Color.accentColor : .clear,
             lineWidth: 3

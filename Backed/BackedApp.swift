@@ -41,5 +41,14 @@ struct BackedApp: App {
         .keyboardShortcut("q", modifiers: .command)
       }
     }
+    
+    MenuBarExtra {
+      WallpaperGridView(menuMode: true)
+        .frame(width: 500, height: 350)
+        .environmentObject(library)
+    } label: {
+      Label("Backed Menu", systemImage: "film.stack.fill")
+    }
+    .menuBarExtraStyle(.window)
   }
 }
