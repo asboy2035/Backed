@@ -44,7 +44,7 @@ struct BackedApp: App {
     
     MenuBarExtra {
       WallpaperGridView(menuMode: true)
-        .frame(width: 500, height: 350)
+        .frame(width: 540, height: 360)
         .environmentObject(library)
     } label: {
       Label("Backed Menu", systemImage: "film.stack.fill")
