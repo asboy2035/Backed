@@ -19,8 +19,12 @@ final class WallpaperLibrary: ObservableObject {
   @Published var activeWallpaper: Wallpaper?
   @Published var isAudioEnabled: Bool = true
   @Published var folders: [WallpaperFolder] = []
+  @Published var isClearingCache: Bool = false
   
   private let libraryURL: URL
+  private let cacheURL: URL = FileManager.default
+    .urls(for: .cachesDirectory, in: .userDomainMask)[0]
+    .appendingPathComponent("BackedCache")
   
   private init() {
     libraryURL = FileManager.default
@@ -29,6 +33,10 @@ final class WallpaperLibrary: ObservableObject {
     
     try? FileManager.default.createDirectory(
       at: libraryURL,
+      withIntermediateDirectories: true
+    )
+    try? FileManager.default.createDirectory(
+      at: cacheURL,
       withIntermediateDirectories: true
     )
     
@@ -202,5 +210,33 @@ final class WallpaperLibrary: ObservableObject {
     guard let i = folders.firstIndex(of: folder) else { return }
     folders[i].wallpaperIDs.removeAll { $0 == wallpaper.id }
     save()
+  }
+  
+  func cleanCacheAndQuit() {
+    isClearingCache = true
+    cleanCache()
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      self.isClearingCache = false
+      NSApplication.shared.terminate(nil)
+    }
+  }
+
+  func cleanCache() {
+    let fm = FileManager.default
+
+    // remove entire BackedCache directory
+    try? fm.removeItem(at: cacheURL)
+    try? fm.createDirectory(at: cacheURL, withIntermediateDirectories: true)
+
+    // remove orphaned wallpapers
+    let usedURLs = Set(wallpapers.map { $0.url })
+    if let contents = try? fm.contentsOfDirectory(at: libraryURL, includingPropertiesForKeys: nil) {
+      for file in contents {
+        if !usedURLs.contains(file) {
+          try? fm.removeItem(at: file)
+        }
+      }
+    }
   }
 }

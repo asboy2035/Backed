@@ -18,6 +18,20 @@ struct ContentView: View {
     }
     .frame(minWidth: 750, minHeight: 450)
     .modifier(SafeNavigationSubtitle(title: "Backed"))
+    .overlay {
+      if library.isClearingCache {
+        VStack {
+          Text("Clearing Cache...")
+            .font(.title2)
+          Text("Please wait.")
+            .foregroundStyle(.secondary)
+        }
+        .padding(8)
+        .safeGlass(cornerRadius: 12)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+      }
+    }
     .toolbar {
       ToolbarItem(placement: .navigation) {
         Toggle(isOn: $library.isAudioEnabled) {

@@ -31,6 +31,15 @@ struct BackedApp: App {
         }
         .keyboardShortcut(",", modifiers: [.command])
       }
+      
+      CommandGroup(replacing: .appTermination) {
+        Button {
+          WallpaperLibrary.shared.cleanCacheAndQuit()
+        } label: {
+          Label("Quit Backed", systemImage: "power")
+        }
+        .keyboardShortcut("q", modifiers: .command)
+      }
     }
   }
 }
