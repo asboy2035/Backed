@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import AppKit
 
 @main
 struct BackedApp: App {
   @StateObject private var library = WallpaperLibrary.shared
+  @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
   
   var body: some Scene {
     WindowGroup {
@@ -50,5 +52,38 @@ struct BackedApp: App {
       Label("Backed Menu", systemImage: "film.stack.fill")
     }
     .menuBarExtraStyle(.window)
+  }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+  func applicationDockMenu(_ sender: NSApplication) -> NSMenu {
+    let menu = NSMenu()
+
+    let stopItem = NSMenuItem(
+      title: "Stop Playing",
+      action: #selector(stopWallpaper),
+      keyEquivalent: ""
+    )
+    stopItem.target = self
+    menu.addItem(stopItem)
+
+    let muteItem = NSMenuItem(
+      title: WallpaperLibrary.shared.isAudioEnabled ? "Mute Audio" : "Unmute Audio",
+      action: #selector(toggleAudio),
+      keyEquivalent: ""
+    )
+    muteItem.target = self
+    menu.addItem(muteItem)
+
+    return menu
+  }
+
+  @objc private func stopWallpaper() {
+    WallpaperLibrary.shared.stopPlaying()
+  }
+
+  @objc private func toggleAudio() {
+    WallpaperLibrary.shared.isAudioEnabled.toggle()
+    VideoWallpaperEngine.shared.setMuted(!WallpaperLibrary.shared.isAudioEnabled)
   }
 }
